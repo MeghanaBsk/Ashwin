@@ -1,0 +1,6 @@
+This is some content in file.txt
+<<<<<<< HEAD
+Change made in Branch B
+=======
+Change made in Branch A
+>>>>>>> branchA
