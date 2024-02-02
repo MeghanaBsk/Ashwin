@@ -1,45 +1,57 @@
 pipeline {
-    agent any
-    
+    agent any 
+
     stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the source code from Git
-                git credentialsId: 'MeghanaBsk', url: 'https://github.com/MeghanaBsk/Ashwin.git'
-            }
-        }
-        
         stage('Build') {
             steps {
-                // Install Node.js dependencies
-                sh 'npm install'
+                // Get latest code from source control
+                git 'https://github.com/MeghanaBsk/Ashwin.git'
+
+                // Build application
+                sh 'mvn clean install' 
+
+                // Run tests
+                sh 'mvn test'
             }
         }
-        
-        stage('Test') {
+
+        stage('SonarQube Analysis') {
             steps {
-                // Run tests for the Node.js application
-                sh 'npm test'
+                // Run SonarQube analysis
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar'
+                }   
             }
         }
-        
-        stage('Deploy') {
+
+        stage('Quality Gate') {
             steps {
-                // Deployment steps go here
-                // Example: Deploy to a server or a cloud platform
-                // sh 'npm run deploy'
+                // Check if analysis meets quality gate requirements
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }    
+            }
+        }
+
+        stage('Package') {
+            steps {
+                // Package application for deployment 
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Deploy to Dev') {
+            steps {
+                // Deploy to dev environment
+                sh 'scp target/*.war username@devserver:/path/to/webapps' 
             }
         }
     }
-    
+
     post {
-        success {
-            // Post-build actions for success
-            echo 'Build and test successful!'
-        }
-        failure {
-            // Post-build actions for failure
-            echo 'Build or test failed!'
+        always {
+            // Clean workspace after pipeline completes
+            cleanWs()
         }
     }
 }
