@@ -1,1 +1,8 @@
+HEAD
 abcd 
+This is some content in file.txt
+HEAD
+Change made in Branch B
+Change made in Branch A
+branchA
+498f953abbffb67e98ab1ca53b430e06b8b6dc23
